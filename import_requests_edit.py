@@ -6,6 +6,7 @@ import getpass
 # Set the request parameters
 # Change the URL according to what information is desired.
 subdomain = input("Enter your Zendesk Subdomain (not full URL, but something such as your company name): ")
+#subdomain = 'soundid-reference'
 url = 'https://' + subdomain +'.zendesk.com/api/v2/help_center/en-us/articles.json?sort_by=title&sort_order=asc'
 
 # Use Your Zendesk Support Sign-On Credentials
@@ -17,74 +18,38 @@ csvfile = 'HelpCenterInformation.csv'
 
 # This loop cycles through all pages of articles, converts the unicode
 # to an integer, and writes the integers to an array
-output_1 = []
-output_1.append("Article ID")
-output_2 = []
-output_2.append("Article Title")
-output_3 = []
-output_3.append("URL")
-output_4 = []
-output_4.append("Vote Sum")
-output_5 = []
-output_5.append("Vote Count")
-output_6 = []
-output_6.append("Author ID")
-output_7 = []
-output_7.append("Section ID")
-output_8 = []
-output_8.append("Draft (True if Draft, False if not")
-output_9 = []
-output_9.append("Updated At")
-output_10 = []
-output_10.append("label_names")
+attributes = {
+        'id': 'Article ID', 
+        'title': 'Article Title',
+        'html_url': 'URL',
+        'vote_sum': 'Vote Sum',
+        'vote_count': 'Vote Count',
+        'author_id': 'Author ID',
+        'section_id': 'Section ID',
+        'draft': 'Draft (True if Draft, False if not)',
+        'updated_at': 'Updated At',
+        'label_names': 'Label Names'
+        }
+
+list_of_lists = []
+
+for key in attributes.keys():
+        list_of_lists.append([attributes[key]])
+
 while url:
         response = requests.get(url, auth = (user, pwd))
         data = response.json()
+
         for article in data['articles']:
-                article_id = article['id']
-                decode_1 = int(article_id)
-                output_1.append(decode_1)
-        for article in data['articles']:
-                title = article['title']
-                decode_2 = unicodedata.normalize('NFKD', title)
-                output_2.append(decode_2)
-        for article in data['articles']:
-                article_url = article['html_url']
-                decode_3 = unicodedata.normalize('NFKD', article_url)
-                output_3.append(decode_3)
-        for article in data['articles']:
-                vote_sum = article['vote_sum']
-                decode_4 = int(vote_sum)
-                output_4.append(decode_4)
-        for article in data['articles']:
-                vote_count = article['vote_count']
-                decode_5 = int(vote_count)
-                output_5.append(decode_5)
-        for article in data['articles']:
-                author_id = article['author_id']
-                decode_6 = int(author_id)
-                output_6.append(decode_6)
-        for article in data['articles']:
-                section_id = article['section_id']
-                decode_7 = int(section_id)
-                output_7.append(decode_7)
-        for article in data['articles']:
-                draft = article['draft']
-                decode_8 = bool(draft)
-                output_8.append(decode_8)
-        for article in data['articles']:
-                update_time = article['updated_at']
-                decode_9 = unicodedata.normalize('NFKD', update_time)
-                output_9.append(decode_9)
-        for article in data['articles']:
-                label_names = article['label_names']
-                decode_10 = str(label_names)
-                output_10.append(decode_10)
+                list_id = 0
+                for key in attributes.keys():
+                        list_of_lists[list_id].append(str(article[key])) #unicodedata.normalize('NFKD', title)
+                        list_id += 1
         print(data['next_page'])
         url = data['next_page']
 
 print("Number of articles:")
-print (len(output_1))
+print (len(list_of_lists[0]))
 
 # Data Transposition
 # nontransposed_data = [("Article ID","Article Title","URL","Vote Sum"), [output_1], [output_2], [output_3],[output_4]]
@@ -92,16 +57,6 @@ print (len(output_1))
 
 # Write to a csv file
 with open(csvfile, 'w') as fp:
-    writer = csv.writer(fp, dialect = 'excel')
-
-    #writer.writerow(["Article Id", "Article Title", "URL", "Vote Sum"])
-    writer.writerows([output_1])
-    writer.writerows([output_2])
-    writer.writerows([output_3])
-    writer.writerows([output_4])
-    writer.writerows([output_5])
-    writer.writerows([output_6])
-    writer.writerows([output_7])
-    writer.writerows([output_8])
-    writer.writerows([output_9])
-    writer.writerows([output_10])
+        writer = csv.writer(fp, dialect = 'excel')
+        for attr_list in list_of_lists:
+                writer.writerows([attr_list])
