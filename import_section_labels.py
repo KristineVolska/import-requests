@@ -1,7 +1,16 @@
+import sys
 from datetime import datetime
 import requests
 import getpass
 import pandas as pd
+
+# Exception handling
+def show_exception_and_exit(exc_type, exc_value, tb):
+    import traceback
+    traceback.print_exception(exc_type, exc_value, tb)
+    input("Press key to exit.")
+    sys.exit(-1)
+sys.excepthook = show_exception_and_exit
 
 # Set the request parameters
 subdomain = input("Enter your Zendesk Subdomain (not full URL, but something such as your company name): ")
@@ -13,7 +22,7 @@ pwd = getpass.getpass("Enter your Zendesk Password: ")
 
 # Path of the outputted csv file
 date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-csvfile = f'section_labels_{date_time}.csv'
+csvfile = f'{subdomain}_section_labels_{date_time}.csv'
 
 section_dict = {}
 section_name_dict = {}
@@ -53,3 +62,5 @@ result_df.columns = column_names
 result_df_sorted = result_df.sort_values(by=['Category', 'Section'])
 result_df_transposed = result_df_sorted.set_index('Category').transpose()
 result_df_transposed.to_csv(csvfile, index=False)
+
+input("Press Enter to close")
